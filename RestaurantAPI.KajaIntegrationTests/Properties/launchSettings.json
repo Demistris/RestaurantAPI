@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "RestaurantAPI.KajaIntegrationTests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:54483;http://localhost:54484"
+    }
+  }
+}
