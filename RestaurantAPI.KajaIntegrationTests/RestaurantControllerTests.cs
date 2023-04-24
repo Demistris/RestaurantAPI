@@ -7,6 +7,10 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using RestaurantAPI.Entities;
 using Microsoft.Extensions.DependencyInjection;
+using RestaurantAPI.Models;
+using Newtonsoft.Json;
+using System.Text;
+using Microsoft.AspNetCore.Authorization.Policy;
 
 namespace RestaurantAPI.KajaIntegrationTests
 {
@@ -23,9 +27,34 @@ namespace RestaurantAPI.KajaIntegrationTests
                     var dbContextOptions = services.SingleOrDefault(service => service.ServiceType == typeof(DbContextOptions<RestaurantDbContext>));
                     services.Remove(dbContextOptions);
 
+                    services.AddSingleton<IPolicyEvaluator, FakePolicyEvaluator>();
+                    services.AddMvc(option => option.Filters.Add(new FakeUserFilter()));
+
                     services.AddDbContext<RestaurantDbContext>(options => options.UseInMemoryDatabase("RestaurantDb"));
                 }); 
             }).CreateClient();
+        }
+
+        [Fact]
+        public async Task CreateRestaurant_WithValidModel_ReturnsCreatedStatus()
+        {
+            //Arrange
+            var model = new CreateRestaurantDto()
+            {
+                Name = "TestRestaurant",
+                City = "Kraków",
+                Street = "Czysta 8"
+            };
+
+            var json = JsonConvert.SerializeObject(model);
+            var httpContent = new StringContent(json, UnicodeEncoding.UTF8, "application/json");
+
+            //Act
+            var response = await _client.PostAsync("/api/restaurant", httpContent);
+
+            //Arrange
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
+            response.Headers.Location.Should().NotBeNull();
         }
 
         [Theory]
