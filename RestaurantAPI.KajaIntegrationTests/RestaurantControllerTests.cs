@@ -11,6 +11,7 @@ using RestaurantAPI.Models;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.AspNetCore.Authorization.Policy;
+using RestaurantAPI.KajaIntegrationTests.Helpers;
 
 namespace RestaurantAPI.KajaIntegrationTests
 {
@@ -46,15 +47,34 @@ namespace RestaurantAPI.KajaIntegrationTests
                 Street = "Czysta 8"
             };
 
-            var json = JsonConvert.SerializeObject(model);
-            var httpContent = new StringContent(json, UnicodeEncoding.UTF8, "application/json");
+            var httpContent = model.ToJsonHttpContent();
 
             //Act
             var response = await _client.PostAsync("/api/restaurant", httpContent);
 
-            //Arrange
+            //Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
             response.Headers.Location.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task CreateRestaurant_WithInvalidModel_ReturnsBadRequest()
+        {
+            //Arrange
+            var model = new CreateRestaurantDto()
+            {
+                ContactEmail = "test@test.com",
+                Description = "Test description",
+                ContactNumber = "999 888 777"
+            };
+
+            var httpContent = model.ToJsonHttpContent();
+
+            //Act
+            var response = await _client.PostAsync("/api/restaurant", httpContent);
+
+            //Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
         }
 
         [Theory]
